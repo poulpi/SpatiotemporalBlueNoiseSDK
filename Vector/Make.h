@@ -725,3 +725,34 @@ struct Make_UnitFloat3_CosineWeightedHemisphere : public MakeBase<3, dimsX, dims
         }
     }
 };
+
+template <int dimsX, int dimsY, int dimsZ, float sigmaX, float sigmaY, float sigmaZ, float sigmaValue>
+struct Make_Float2_Disc : public MakeBase<2, dimsX, dimsY, dimsZ, sigmaX, sigmaY, sigmaZ, sigmaValue, true, true, false>
+{
+    static void Generate(Vec2& v, pcg32_random_t& rng)
+    {
+        v[0] = RandomFloat01(rng) * 2.0f - 1.0f;
+        v[1] = RandomFloat01(rng) * 2.0f - 1.0f;
+    }
+
+    static void Convert(const Vec2& in, unsigned char* out)
+    {
+        out[0] = (unsigned char)Clamp((in[0] * 0.5f + 0.5f) * 256.0f, 0.0f, 255.0f);
+        out[1] = (unsigned char)Clamp((in[1] * 0.5f + 0.5f) * 256.0f, 0.0f, 255.0f);
+    }
+
+    static void GenerateStartingTexture(Make_Float2_Disc& maker, pcg32_random_t& rng, bool importanceSampling, std::vector<float>& isf, int isw, int ish, float isavg, const char* baseFileName)
+    {
+        for (size_t index = 0; index < Make_Float2_Disc::c_numPixels; ++index)
+        {
+            float theta = RandomFloat01(rng) * 2.0f * c_pi;
+            float radius = RandomFloat01(rng);
+
+            float x = cos(theta) * radius;
+            float y = sin(theta) * radius;
+
+            maker.m_cells[index] = Vec2{ x, y };
+            maker.m_pdf[index] = 1.0f;
+        }
+    }
+};
